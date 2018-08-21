@@ -11,6 +11,7 @@ from google.protobuf.internal.decoder import _DecodeVarint32
 from google.protobuf.internal.decoder import wire_format
 from google.protobuf.internal.decoder import struct
 import os
+import sys
 
 
 VERBOSE = False
@@ -327,20 +328,23 @@ inputFile : string with the .will file.
 
 if __name__=='__main__':
 
-    fileName = './WCM0007'
+    if not len(sys.argv) == 2:
+        print('Usage: will_reader.py [filename]\n where filename is the name of the WILL file without the extension.\n\n Obs.: the file.svg will be overitten')
+    else:
+        fileName = sys.argv[1]
+        
+        buffer = readWillProtobuff(fileName + '.will')
     
-    buffer = readWillProtobuff(fileName + '.will')
-
-
-    (xData, yData, lineData) = processBuffer(buffer)
-
-
-    plotXYLineData(xData, yData, lineData)
     
-    svgStr = XYLineDataToSVG(xData, yData, lineData)
+        (xData, yData, lineData) = processBuffer(buffer)
     
-    with open(fileName + '.svg','wt') as f:
-        f.write(svgStr)
     
+        plotXYLineData(xData, yData, lineData)
+        
+        svgStr = XYLineDataToSVG(xData, yData, lineData)
+        
+        with open(fileName + '.svg','wt') as f:
+            f.write(svgStr)
+        
     
     
