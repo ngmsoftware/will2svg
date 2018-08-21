@@ -18,7 +18,11 @@ The information contained in the SVG can be used to, for instance, make stop-mot
 
 ## Screen-shoots
 
+![Sample](/doc/sample.png?raw=true "Sample")
+
 ![img1](/doc/img1.png?raw=true "img1")
+
+![Wacom problem](/doc/wacom_problem.png?raw=true "Wacom problem")
 
 ## Instructions
 
