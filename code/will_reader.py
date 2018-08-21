@@ -55,7 +55,7 @@ lineData : array with arrays of lineWhidths
     """
 
     for x, y, lineWidth in zip(xData, yData, lineData):
-        plt.plot(x,y,'k', linewidth=(lineWidth**5)/20)
+        plt.plot(x,[-y for y in y],'k', linewidth=(lineWidth**5)/20)
     
     plt.axis('equal')
 
@@ -72,18 +72,30 @@ lineData : array with arrays of lineWhidths
 TODO: Take linewidhts into consideration    
     """
 
-    svgStr = f'<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="1000mm" height="2000mm" viewBox="0 0 1000 2000"> '
+    svgStr = f''
+    
+    minX = 10000
+    minY = 10000
+    maxX = -10000
+    maxY = -10000
     
     for arrayX, arrayY in zip(xData, yData):
-        svgStr += f'<path stroke="black" fill="none" d="M{arrayX[0]},{-arrayY[0]} '
+        svgStr += f'<path stroke="black" fill="none" d="M{arrayX[0]},{arrayY[0]} '
         for x, y, idx in zip(arrayX[1:], arrayY[1:], range(len(arrayX)-1)):
             if idx%3 == 0:
                 svgStr = svgStr[:-1] + f' C'
-            svgStr += f'{x} {-y},'
+            svgStr += f'{x} {y},'
+    
+            minX = x if minX>x else minX
+            minY = y if minY>y else minY
+            maxX = x if maxX<x else maxX
+            maxY = y if maxY<y else maxY
     
         svgStr = svgStr[:-1] + '"/>\n'
     
-    svgStr += '</svg>'
+    svgWidth = maxX-minX
+    svgHeight = maxY-minY
+    svgStr = f'<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="{svgWidth}mm" height="{svgHeight}mm" viewBox="{minX} {minY} {maxX} {maxY}"> ' + svgStr + '</svg>'
         
     return svgStr
 
@@ -199,7 +211,7 @@ messageBytes : message to decode
     factor = 10**decimalPrecision
     
     x = cumsum(dx, factor)
-    y = cumsum(dy, -factor)
+    y = cumsum(dy, factor)
     
     debugPrint(f'field: {field}, wire type:{wireType}')
     debugPrint(f'strLen: {strLen}')
