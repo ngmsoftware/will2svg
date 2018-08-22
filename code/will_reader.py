@@ -69,6 +69,7 @@ Currently it ignores the linewidth so it generates constant width paths
 xData    : array with arrays of x coordinates
 yData    : array with arrays of y coordinates
 lineData : array with arrays of lineWhidths
+skips    : number of spline control points to skip
 
 TODO: Take linewidhts into consideration    
     """
@@ -82,7 +83,8 @@ TODO: Take linewidhts into consideration
     
     for arrayX, arrayY in zip(xData, yData):
         svgStr += f'<path stroke="black" fill="none" d="M{arrayX[0]},{arrayY[0]} '
-        for x, y, idx in zip(arrayX[1:], arrayY[1:], range(len(arrayX)-1)):
+        idx = range(len(arrayX))
+        for x, y, idx in zip(arrayX[1:], arrayY[1:], idx[1:]):
             if idx%3 == 0:
                 svgStr = svgStr[:-1] + f' C'
             svgStr += f'{x} {y},'
