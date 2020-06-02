@@ -14,6 +14,9 @@ import os
 import sys
 import fnmatch
 
+# sudo apt-get install   python3-matplotlib    python3-tk
+
+
 
 VERBOSE = False
 
@@ -327,7 +330,8 @@ inputFile : string with the .will file.
     strokes_protobuf=fnmatch.filter(zip_namelist,'sections/media/*.protobuf')
     debugPrint(strokes_protobuf[0])
 
-    return input_zip.read(strokes_protobuf[0])
+    # return input_zip.read(strokes_protobuf[0])
+    return map(input_zip.read, strokes_protobuf)
 
 
 
@@ -338,19 +342,34 @@ if __name__=='__main__':
         print('Usage: will_reader.py [filename]\n where filename is the name of the WILL file without the extension.\n\n Obs.: the file.svg will be overitten')
     else:
         fileName = sys.argv[1]
-        
-        buffer = readWillProtobuff(fileName + '.will')
-    
-    
-        (xData, yData, lineData) = processBuffer(buffer)
-    
-    
-        plotXYLineData(xData, yData, lineData)
-        
-        svgStr = XYLineDataToSVG(xData, yData, lineData)
-        
-        with open(fileName + '.svg','wt') as f:
-            f.write(svgStr)
-        
+
+        buffer=readWillProtobuff(fileName + '.will')
+        for i,n in zip(buffer,range(99)):
+            print(n)
+            (xData, yData, lineData) = processBuffer(i)
+
+            plotXYLineData(xData, yData, lineData)
+
+            svgStr = XYLineDataToSVG(xData, yData, lineData)
+
+            with open(fileName +'_'+str(n).zfill(2)+ '.svg','wt') as f:
+                f.write(svgStr)
+
+
+
+#        buffer = readWillProtobuff(fileName + '.will')
+#    
+#    
+#        (xData, yData, lineData) = processBuffer(buffer)
+#    
+#    
+#        plotXYLineData(xData, yData, lineData)
+#        
+#        svgStr = XYLineDataToSVG(xData, yData, lineData)
+#        
+#
+#        with open(fileName + '.svg','wt') as f:
+#            f.write(svgStr)
+#        
     
     
