@@ -83,10 +83,10 @@ TODO: Take linewidhts into consideration
     
     for arrayX, arrayY in zip(xData, yData):
         svgStr += f'<path stroke="black" fill="none" d="M{arrayX[0]},{arrayY[0]} '
-        idx = range(len(arrayX))
-        for x, y, idx in zip(arrayX[1:], arrayY[1:], idx[1:]):
-            if idx%3 == 0:
-                svgStr = svgStr[:-1] + f' C'
+        idxr = range(len(arrayX))
+        svgStr += f' L'
+        for x, y, idx in zip(arrayX[1:], arrayY[1:], idxr[1:]):
+            
             svgStr += f'{x} {y},'
     
             minX = x if minX>x else minX
@@ -257,7 +257,7 @@ messageBytes : message to decode
 
     debugPrint()
     
-    debugPrint(struct.unpack('BBBB',messageBytes[nextPos:]))
+    debugPrint(struct.unpack('B'*len(messageBytes[nextPos:]),messageBytes[nextPos:]))
 
     lineWidth = 0.01*sum(strokeWidths)/len(strokeWidths)
     
