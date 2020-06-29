@@ -12,7 +12,7 @@ from google.protobuf.internal.decoder import wire_format
 from google.protobuf.internal.decoder import struct
 import os
 import sys
-
+import argparse
 
 VERBOSE = False
 
@@ -61,7 +61,7 @@ lineData : array with arrays of lineWhidths
     plt.axis('equal')
 
 
-def XYLineDataToSVG(xData, yData, lineData):
+def XYLineDataToSVG(xData, yData, lineData, poly=False):
     """ XYLineDataToSVG(xData, yData, lineData)
 Generates the SVG spline data for the array of arrays xData, yData and lineData 
 Currently it ignores the linewidth so it generates constant width paths
@@ -75,27 +75,28 @@ TODO: Take linewidhts into consideration
     """
 
     svgStr = f''
-    
-    minX = 10000
-    minY = 10000
-    maxX = -10000
-    maxY = -10000
-    
+   
     for arrayX, arrayY in zip(xData, yData):
         svgStr += f'<path stroke="black" fill="none" d="M{arrayX[0]},{arrayY[0]} '
-        idx = range(len(arrayX))
-        for x, y, idx in zip(arrayX[1:], arrayY[1:], idx[1:]):
-            if idx%3 == 0:
-                svgStr = svgStr[:-1] + f' C'
+        idxr = range(len(arrayX))
+        if poly: 
+            svgStr += f' L'
+            xyZip = zip(arrayX[0:], arrayY[0:], idxr[0:])   # use all points
+        if not poly:            # ignore first n odd last points
+            idxr = range(len(arrayX) - len(arrayX)%3) 
+            xyZip = zip(arrayX[1:], arrayY[1:], idxr[1:])
+        for x, y, idx in xyZip:
+            if not poly:        # interpret point list as list of Bezier control points
+                if idx%3 == 0:
+                    svgStr = svgStr[:-1] + f' C'
             svgStr += f'{x} {y},'
-    
-            minX = x if minX>x else minX
-            minY = y if minY>y else minY
-            maxX = x if maxX<x else maxX
-            maxY = y if maxY<y else maxY
     
         svgStr = svgStr[:-1] + '"/>\n'
     
+    minX = max(arrayX)
+    maxX = min(arrayX)
+    minY = max(arrayY)
+    maxY = min(arrayY)    
     svgWidth = maxX-minX
     svgHeight = maxY-minY
     svgStr = f'<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="{svgWidth}mm" height="{svgHeight}mm" viewBox="{minX} {minY} {maxX} {maxY}"> ' + svgStr + '</svg>'
@@ -257,7 +258,7 @@ messageBytes : message to decode
 
     debugPrint()
     
-    debugPrint(struct.unpack('BBBB',messageBytes[nextPos:]))
+    debugPrint(struct.unpack('B'*len(messageBytes[nextPos:]),messageBytes[nextPos:]))
 
     lineWidth = 0.01*sum(strokeWidths)/len(strokeWidths)
     
@@ -330,23 +331,28 @@ inputFile : string with the .will file.
 
 if __name__=='__main__':
 
-    if not len(sys.argv) == 2:
-        print('Usage: will_reader.py [filename]\n where filename is the name of the WILL file without the extension.\n\n Obs.: the file.svg will be overitten')
-    else:
-        fileName = sys.argv[1]
+    parser = argparse.ArgumentParser(description='Convert Wacom WILL file to SVG.\n\nNote: The SVG will be overitten without warning.',formatter_class=argparse.RawTextHelpFormatter)
+    parser.add_argument('-p', '--poly', action='store_true', default=False, help='create polygonal path instead of Bezier curve')
+    parser.add_argument('-v', '--verbose', action='store_true', default=False, help='show verbose debugging info')
+    parser.add_argument( dest='filename',default=False, help="name of the WILL file with or without the extension", type=str)
+
+    try:
+        args, unknownargs = parser.parse_known_args()
+
+        VERBOSE = args.verbose
+        fileName = args.filename
         
         buffer = readWillProtobuff(fileName + '.will')
-    
-    
+     
         (xData, yData, lineData) = processBuffer(buffer)
-    
-    
+     
         plotXYLineData(xData, yData, lineData)
-        
-        svgStr = XYLineDataToSVG(xData, yData, lineData)
+        poly=True
+        svgStr = XYLineDataToSVG(xData, yData, lineData, args.poly)
         
         with open(fileName + '.svg','wt') as f:
             f.write(svgStr)
         
-    
+    except BaseException as e:
+        pass
     
